@@ -41,6 +41,8 @@ def save_state(state: str, filename: str = None):
     if filename == None:
         timestamp = datetime.now().isoformat().replace(":", "-")
         filename = timestamp
+    # Ensure the 'states' directory exists
+    os.makedirs("states", exist_ok=True)
     with open(os.path.join("states", f"{filename}.html"), "w", encoding="utf-8") as f:
         f.write(state)
 
