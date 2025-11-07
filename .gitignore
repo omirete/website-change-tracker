@@ -1,0 +1,6 @@
+config.json
+states/
+log
+.vscode
+.env
+helpers/__pycache__
