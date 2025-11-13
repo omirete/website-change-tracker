@@ -45,6 +45,7 @@ def get_existing_crontab():
 
 def create_cron_entry(hours: int, script_dir: Path):
     """Create a cron entry string."""
+    # Use just the filename since we cd into the directory
     script_filename = "detect_website_changes.py"
     log_path = script_dir / "cron.log"
     
