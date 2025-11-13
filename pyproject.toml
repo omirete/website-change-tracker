@@ -19,5 +19,5 @@ dependencies = [
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-# Disable packaging for this project; use Poetry only for dependency management.
+[tool.poetry]
 package-mode = false
