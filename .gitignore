@@ -3,4 +3,5 @@ states/
 log
 .vscode
 .env
+__pycache__/
 helpers/__pycache__
