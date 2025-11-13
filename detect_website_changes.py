@@ -74,7 +74,7 @@ def main():
     if resp.status_code == 200:
         resp_text = resp.text
         if has_changes(resp_text):
-            log("State has changed!")
+            log("Change detected!")
             if MY_USER_ID is not None:
                 sendMsg(
                     user_id=MY_USER_ID,
@@ -83,6 +83,7 @@ def main():
                 )
             save_state(resp_text)
         else:
+            log("No changes detected.")
             print("No changes detected.")
             pass
     else:
