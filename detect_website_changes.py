@@ -84,7 +84,6 @@ def main():
             save_state(resp_text)
         else:
             log("No changes detected.")
-            print("No changes detected.")
             pass
     else:
         log(f"HTTP Request was not successful. Status: {resp.status}")
