@@ -6,8 +6,10 @@ This script will add a cron entry to run detect_website_changes.py at regular in
 
 import os
 import sys
+
 import subprocess
 from pathlib import Path
+import shutil
 
 
 def get_current_directory():
@@ -15,17 +17,26 @@ def get_current_directory():
     return Path(__file__).parent.resolve()
 
 
+
+def get_poetry_path():
+    """Get the absolute path to the poetry binary, or None if not found."""
+    poetry_path = shutil.which("poetry")
+    return poetry_path
+
 def check_poetry_available():
-    """Check if poetry is available."""
+    """Check if poetry is available and return its path if so."""
+    poetry_path = get_poetry_path()
+    if poetry_path is None:
+        return None
     try:
         subprocess.run(
-            ["poetry", "--version"],
+            [poetry_path, "--version"],
             capture_output=True,
             check=True
         )
-        return True
+        return poetry_path
     except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
+        return None
 
 
 def get_existing_crontab():
@@ -43,19 +54,13 @@ def get_existing_crontab():
         sys.exit(1)
 
 
-def create_cron_entry(hours: int, script_dir: Path):
-    """Create a cron entry string."""
-    # Use just the filename since we cd into the directory
+def create_cron_entry(hours: int, script_dir: Path, poetry_path: str):
+    """Create a cron entry string using the absolute poetry path."""
     script_filename = "detect_website_changes.py"
     log_path = script_dir / "cron.log"
-    
-    # Cron format: minute hour day month weekday command
-    # To run every X hours: 0 */X * * *
     cron_schedule = f"0 */{hours} * * *"
-    
-    # Always use poetry run python
-    command = f"cd {script_dir} && poetry run python {script_filename} >> {log_path} 2>&1"
-    
+    # Use the absolute poetry path
+    command = f"cd {script_dir} && {poetry_path} run python {script_filename} >> {log_path} 2>&1"
     return f"{cron_schedule} {command}"
 
 
@@ -70,22 +75,24 @@ def setup_cronjob(hours: int = 1):
         print("Error: Hours must be at least 1")
         sys.exit(1)
     
-    # Check if poetry is available
-    if not check_poetry_available():
+    # Check if poetry is available and get its path
+    poetry_path = check_poetry_available()
+    if not poetry_path:
         print("Error: Poetry is not installed or not available in PATH.")
         print("This script requires Poetry to be installed.")
         print("Visit for installation instructions: https://python-poetry.org")
         sys.exit(1)
-    
+
     script_dir = get_current_directory()
-    
+
     print(f"Setting up cronjob to run every {hours} hour(s)...")
     print(f"Script directory: {script_dir}")
-    print(f"Command: poetry run python detect_website_changes.py")
-    
+    print(f"Poetry binary: {poetry_path}")
+    print(f"Command: {poetry_path} run python detect_website_changes.py")
+
     # Get existing crontab
     existing_crontab = get_existing_crontab()
-    
+
     # Check if our cronjob already exists
     marker = "website-change-tracker"
     if marker in existing_crontab:
@@ -94,21 +101,21 @@ def setup_cronjob(hours: int = 1):
         if response != 'y':
             print("Aborted.")
             sys.exit(0)
-        
+
         # Remove existing entries
         lines = existing_crontab.split('\n')
         existing_crontab = '\n'.join([line for line in lines if marker not in line])
-    
-    # Create new cron entry
-    new_entry = create_cron_entry(hours, script_dir)
+
+    # Create new cron entry with absolute poetry path
+    new_entry = create_cron_entry(hours, script_dir, poetry_path)
     new_entry_with_comment = f"# {marker}\n{new_entry}"
-    
+
     # Combine with existing crontab
     if existing_crontab.strip():
         updated_crontab = existing_crontab.rstrip() + '\n' + new_entry_with_comment + '\n'
     else:
         updated_crontab = new_entry_with_comment + '\n'
-    
+
     # Install new crontab
     try:
         process = subprocess.Popen(
@@ -117,7 +124,7 @@ def setup_cronjob(hours: int = 1):
             text=True
         )
         process.communicate(input=updated_crontab)
-        
+
         if process.returncode == 0:
             print("\n✓ Cronjob successfully installed!")
             print(f"\nThe script will run every {hours} hour(s).")
