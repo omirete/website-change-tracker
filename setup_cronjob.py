@@ -57,7 +57,7 @@ def get_existing_crontab():
 def create_cron_entry(hours: int, script_dir: Path, poetry_path: str):
     """Create a cron entry string using the absolute poetry path."""
     script_filename = "detect_website_changes.py"
-    log_path = script_dir / "cron.log"
+    log_path = "cron.log"
     cron_schedule = f"0 */{hours} * * *"
     # Use the absolute poetry path
     command = f"cd {script_dir} && {poetry_path} run python {script_filename} >> {log_path} 2>&1"
