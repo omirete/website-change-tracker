@@ -18,7 +18,7 @@ URL_TO_TRACK = config["url_to_track"]
 
 
 def log(msg: str):
-    with open("log", "w+", encoding="utf-8") as logfile:
+    with open("log", "a", encoding="utf-8") as logfile:
         timestamp = datetime.now().isoformat()
         logfile.write(f"{timestamp}: {msg}\n")
 
