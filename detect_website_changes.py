@@ -72,7 +72,7 @@ def main(print_logs: bool = False):
         URL_TO_TRACK = config["url_to_track"]
 
         resp = get(URL_TO_TRACK)
-        if resp.status_code == 200:
+        if 200 <= resp.status_code < 300:
             resp_text = resp.text
             if has_changes(resp_text):
                 log("Change detected!", print_logs)
