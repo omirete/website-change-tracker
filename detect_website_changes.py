@@ -38,7 +38,7 @@ def read_state(filename: str) -> TextIOWrapper:
 
 
 def save_state(state: str, filename: str = None):
-    if filename == None:
+    if filename is None:
         timestamp = datetime.now().isoformat().replace(":", "-")
         filename = timestamp
     # Ensure the 'states' directory exists
@@ -56,7 +56,7 @@ def has_changes(state_from_response: str) -> bool:
     os.remove(os.path.join("states", f"{aux_state_name}.html"))
 
     last_known_state = get_last_known_state()
-    last_known_state = "" if last_known_state == None else last_known_state.read()
+    last_known_state = "" if last_known_state is None else last_known_state.read()
     last_known_state = unicodedata.normalize("NFC", last_known_state)
 
     soup_a = BeautifulSoup(current_state, "html.parser")
