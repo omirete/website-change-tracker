@@ -63,30 +63,33 @@ def has_changes(state_from_response: str) -> bool:
 
 
 def main():
+    try:
+        # Telegram config
+        MY_USER_ID = os.getenv("MY_USER_ID")
 
-    # Telegram config
-    MY_USER_ID = os.getenv("MY_USER_ID")
 
-    config = json.load(open("config.json", "r", encoding="utf-8"))
-    URL_TO_TRACK = config["url_to_track"]
+        config = json.load(open("config.json", "r", encoding="utf-8"))
+        URL_TO_TRACK = config["url_to_track"]
 
-    resp = get(URL_TO_TRACK)
-    if resp.status_code == 200:
-        resp_text = resp.text
-        if has_changes(resp_text):
-            log("Change detected!")
-            if MY_USER_ID is not None:
-                sendMsg(
-                    user_id=MY_USER_ID,
-                    text=f"The website at {URL_TO_TRACK} has changed!",
-                    max_retries=3,
-                )
-            save_state(resp_text)
+        resp = get(URL_TO_TRACK)
+        if resp.status_code == 200:
+            resp_text = resp.text
+            if has_changes(resp_text):
+                log("Change detected!")
+                if MY_USER_ID is not None:
+                    sendMsg(
+                        user_id=MY_USER_ID,
+                        text=f"The website at {URL_TO_TRACK} has changed!",
+                        max_retries=3,
+                    )
+                save_state(resp_text)
+            else:
+                log("No changes detected.")
+                pass
         else:
-            log("No changes detected.")
-            pass
-    else:
-        log(f"HTTP Request was not successful. Status: {resp.status}")
+            log(f"HTTP Request was not successful. Status: {resp.status}")
+    except Exception as e:
+        log(f"An error occurred: {str(e)}")
 
 
 if __name__ == "__main__":
