@@ -56,9 +56,8 @@ def has_changes(state_from_response: str) -> bool:
     soup_a = BeautifulSoup(current_state, "html.parser")
     soup_b = BeautifulSoup(last_known_state, "html.parser")
 
-    # Compare body contents
-    body_a = soup_a.body.get_text() if soup_a.body else ""
-    body_b = soup_b.body.get_text() if soup_b.body else ""
+    body_a = soup_a.body
+    body_b = soup_b.body
 
     return body_a != body_b
 
