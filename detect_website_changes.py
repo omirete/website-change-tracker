@@ -87,7 +87,7 @@ def main():
                 log("No changes detected.")
                 pass
         else:
-            log(f"HTTP Request was not successful. Status: {resp.status}")
+            log(f"HTTP Request was not successful. Status: {resp.status_code}")
     except Exception as e:
         log(f"An error occurred: {str(e)}")
 
