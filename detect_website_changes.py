@@ -17,11 +17,13 @@ config = json.load(open("config.json", "r", encoding="utf-8"))
 URL_TO_TRACK = config["url_to_track"]
 
 
-def log(msg: str):
+def log(msg: str, print_to_console: bool = False):
     with open("log", "a", encoding="utf-8") as logfile:
         timestamp = datetime.now().isoformat()
         logfile.write(f"{timestamp}: {msg}\n")
 
+    if print_to_console:
+        print(f"{timestamp}: {msg}")
 
 def get_last_known_state() -> TextIOWrapper:
     states = os.listdir("states")
