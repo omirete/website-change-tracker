@@ -62,7 +62,7 @@ def has_changes(state_from_response: str) -> bool:
     return body_a != body_b
 
 
-def main():
+def main(print_logs: bool = False):
     try:
         # Telegram config
         MY_USER_ID = os.getenv("MY_USER_ID")
@@ -75,7 +75,7 @@ def main():
         if resp.status_code == 200:
             resp_text = resp.text
             if has_changes(resp_text):
-                log("Change detected!")
+                log("Change detected!", print_logs)
                 if MY_USER_ID is not None:
                     sendMsg(
                         user_id=MY_USER_ID,
@@ -87,9 +87,9 @@ def main():
                 log("No changes detected.")
                 pass
         else:
-            log(f"HTTP Request was not successful. Status: {resp.status_code}")
+            log(f"HTTP Request was not successful. Status: {resp.status_code}", print_logs)
     except Exception as e:
-        log(f"An error occurred: {str(e)}")
+        log(f"An error occurred: {str(e)}", print_logs)
 
 
 if __name__ == "__main__":
