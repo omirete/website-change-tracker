@@ -9,14 +9,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Telegram config
-MY_USER_ID = os.getenv("MY_USER_ID")
-
-
-config = json.load(open("config.json", "r", encoding="utf-8"))
-URL_TO_TRACK = config["url_to_track"]
-
-
 def log(msg: str, print_to_console: bool = False):
     with open("log", "a", encoding="utf-8") as logfile:
         timestamp = datetime.now().isoformat()
@@ -72,6 +64,13 @@ def has_changes(state_from_response: str) -> bool:
 
 
 def main():
+
+    # Telegram config
+    MY_USER_ID = os.getenv("MY_USER_ID")
+
+    config = json.load(open("config.json", "r", encoding="utf-8"))
+    URL_TO_TRACK = config["url_to_track"]
+
     resp = get(URL_TO_TRACK)
     if resp.status_code == 200:
         resp_text = resp.text
