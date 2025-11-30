@@ -4,7 +4,6 @@ Script to automatically set up a cronjob for the website change tracker.
 This script will add a cron entry to run detect_website_changes.py at regular intervals.
 """
 
-import os
 import sys
 
 import subprocess
@@ -53,10 +52,47 @@ def get_existing_crontab():
         print("Error: 'crontab' command not found. This script requires cron to be installed.")
         sys.exit(1)
 
+def get_run_interval():
+    if len(sys.argv) > 1:
+        try:
+            hours = int(sys.argv[1])
+        except ValueError:
+            print(f"Error: Invalid hours value '{sys.argv[1]}'. Must be an integer.")
+            sys.exit(1)
+    else:
+        print("How often should the script run?")
+        hours_input = input("Enter number of hours (default: 1): ").strip()
+        if hours_input == "":
+            hours = 1
+        else:
+            try:
+                hours = int(hours_input)
+            except ValueError:
+                print(f"Error: Invalid input '{hours_input}'. Must be an integer.")
+                sys.exit(1)
+    return hours
 
-def create_cron_entry(hours: int, script_dir: Path, poetry_path: str):
+def get_script_name() -> str:
+    """Get the script filename to run."""
+    print("Which script do you want to setup a cronjob for?")
+    print("1) detect_website_changes.py (default)")
+    print("2) alert_if_missing_text.py")
+    script_id = input("Enter 1 or 2: ").strip()
+    if script_id == "":
+        script_name = "detect_website_changes.py"
+    else:
+        if script_id == "1":
+            script_name = "detect_website_changes.py"
+        elif script_id == "2":
+            script_name = "alert_if_missing_text.py"
+        else:
+            print(f"Error: Invalid input '{script_id}'. Must be 1 or 2.")
+            sys.exit(1)
+    return script_name
+
+
+def create_cron_entry(hours: int, script_dir: Path, poetry_path: str, script_filename: str) -> str:
     """Create a cron entry string using the absolute poetry path."""
-    script_filename = "detect_website_changes.py"
     log_path = "cron.log"
     cron_schedule = f"0 */{hours} * * *"
     # Use the absolute poetry path
@@ -64,7 +100,7 @@ def create_cron_entry(hours: int, script_dir: Path, poetry_path: str):
     return f"{cron_schedule} {command}"
 
 
-def setup_cronjob(hours: int = 1):
+def setup_cronjob(script_name: str, hours: int = 1):
     """
     Set up a cronjob to run the website change tracker.
     
@@ -107,7 +143,7 @@ def setup_cronjob(hours: int = 1):
         existing_crontab = '\n'.join([line for line in lines if marker not in line])
 
     # Create new cron entry with absolute poetry path
-    new_entry = create_cron_entry(hours, script_dir, poetry_path)
+    new_entry = create_cron_entry(hours, script_dir, poetry_path, script_name)
     new_entry_with_comment = f"# {marker}\n{new_entry}"
 
     # Combine with existing crontab
@@ -143,7 +179,7 @@ def setup_cronjob(hours: int = 1):
 def main():
     """Main entry point."""
     print("=== Website Change Tracker - Cronjob Setup ===\n")
-    
+
     # Check if running on Windows
     if sys.platform == "win32":
         print("Warning: This script is designed for Linux/Unix systems with cron.")
@@ -152,26 +188,13 @@ def main():
         if response != 'y':
             sys.exit(0)
     
+    # Get script name to run from user
+    script_name = get_script_name()
+
     # Get interval from user
-    if len(sys.argv) > 1:
-        try:
-            hours = int(sys.argv[1])
-        except ValueError:
-            print(f"Error: Invalid hours value '{sys.argv[1]}'. Must be an integer.")
-            sys.exit(1)
-    else:
-        print("How often should the script run?")
-        hours_input = input("Enter number of hours (default: 1): ").strip()
-        if hours_input == "":
-            hours = 1
-        else:
-            try:
-                hours = int(hours_input)
-            except ValueError:
-                print(f"Error: Invalid input '{hours_input}'. Must be an integer.")
-                sys.exit(1)
+    hours = get_run_interval()
     
-    setup_cronjob(hours)
+    setup_cronjob(script_name, hours)
 
 
 if __name__ == "__main__":
