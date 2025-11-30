@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from helpers.telegram import sendMsg
 from dotenv import load_dotenv
 from selenium import webdriver
-from selenium.webdriver import ChromeOptions
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -20,15 +20,18 @@ def log(msg: str, print_to_console: bool = False):
         print(f"{timestamp}: {msg}")
 
 def setup_selenium_driver() -> webdriver.Chrome:
-    chrome_options = ChromeOptions()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
+    service = Service()
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    driver = webdriver.Chrome(service=service, options=options)
+
     # chrome_options.add_argument("--disable-gpu")
     # chrome_options.add_argument("--disable-dev-shm-usage")
     # chrome_options.add_argument("--window-size=1920,1080")
     # chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     
-    return webdriver.Chrome(options=chrome_options)
+    return driver
     
 def get_page_with_selenium(driver: webdriver.Chrome, url: str) -> str:
     """Fetch page content using Selenium with headless Chrome"""
@@ -82,6 +85,9 @@ def main(print_logs: bool = False):
                 log("String found.", print_logs)
     except Exception as e:
         log(f"An error occurred: {str(e)}", print_logs)
+    finally:
+        if driver:
+            driver.quit()
 
 
 if __name__ == "__main__":
