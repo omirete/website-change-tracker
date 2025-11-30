@@ -31,7 +31,25 @@ Minimal Python script to watch a web page for changes.
   ```
   poetry install
   ``` 
-5. Run it once to test everything works as expected:
+5. Make sure you have a proper web driver installed, for example:
+  ```
+  sudo apt update
+  sudo apt install chromium chromium-driver
+  ``` 
+6. After installing the driver, get the binary path:
+  ```
+  which chromium
+  which chromedriver
+  ```
+7. Add those values to the config.json file, for example:
+  ```JSON
+  {
+    ...,
+    "chromium_binary": "/usr/bin/chromium",
+    "chromedriver_path": "/usr/bin/chromedriver"
+  }
+  ```
+8. Run it once to test everything works as expected:
   ```
   poetry run python detect_website_changes.py
   ```
@@ -39,7 +57,7 @@ Minimal Python script to watch a web page for changes.
   ```
   poetry run python alert_if_missing_text.py
   ```
-6. Optionally setup a cronjob using the wizard:
+9. Optionally setup a cronjob using the wizard:
   ```
   poetry run python setup_cronjob.py
   ```
