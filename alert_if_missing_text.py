@@ -58,6 +58,7 @@ def find_string(driver: webdriver.Chrome, html_content: str, search_string: str)
 
 
 def main(print_logs: bool = False):
+    driver = setup_selenium_driver()
     try:
         # Telegram config
         MY_USER_ID = os.getenv("MY_USER_ID")
@@ -67,7 +68,6 @@ def main(print_logs: bool = False):
         URL_TO_TRACK = config["url_to_track"]
         STRING_TO_SEARCH = config["string_to_search"]
 
-        driver = setup_selenium_driver()
 
         # Use Selenium to get the page content with JavaScript rendering
         resp_text = get_page_with_selenium(driver, URL_TO_TRACK)
