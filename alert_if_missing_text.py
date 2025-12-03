@@ -1,4 +1,4 @@
-import json, os, time
+import json, os, time, platform
 from datetime import datetime
 from bs4 import BeautifulSoup
 from helpers.telegram import sendMsg
@@ -27,10 +27,23 @@ def setup_selenium_driver(chromium_binary: str = None, chromedriver_path: str = 
     """
     options: Options = Options()
 
-    # Headless Chromium on a Pi
+    # Headless Chromium - memory-optimized settings
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--disable-software-rasterizer")
+    options.add_argument("--disable-extensions")
+    options.add_argument("--disable-background-networking")
+    options.add_argument("--disable-sync")
+    options.add_argument("--disable-translate")
+    options.add_argument("--disable-default-apps")
+    options.add_argument("--no-first-run")
+    options.add_argument("--disable-logging")
+    
+    # Single-process mode only for Linux (Pi Zero) - crashes on Windows
+    if platform.system() == "Linux":
+        options.add_argument("--single-process")
     
     if chromium_binary:
         options.binary_location = chromium_binary
@@ -45,31 +58,20 @@ def setup_selenium_driver(chromium_binary: str = None, chromedriver_path: str = 
     )
     return driver
     
-def wait_for_page_stability(driver: webdriver.Chrome, timeout: int = 10, stability_time: float = 0.5) -> None:
-    """Wait until page content stops changing (DOM stabilizes)."""
+def wait_for_page_stability(driver: webdriver.Chrome, timeout: int = 10) -> None:
+    """Wait for page to load and become interactive."""
+    # Wait for body element
     WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.TAG_NAME, "body"))
     )
     
-    # Wait for page to stabilize by comparing page source
-    last_source = None
-    stable_start = None
-    start_time = time.time()
+    # Wait for document.readyState to be complete
+    WebDriverWait(driver, timeout).until(
+        lambda d: d.execute_script("return document.readyState") == "complete"
+    )
     
-    while time.time() - start_time < timeout:
-        current_source = driver.page_source
-        
-        if current_source == last_source:
-            if stable_start is None:
-                stable_start = time.time()
-            elif time.time() - stable_start >= stability_time:
-                # Page has been stable for stability_time seconds
-                return
-        else:
-            stable_start = None
-            last_source = current_source
-        
-        time.sleep(0.1)
+    # Small additional wait for any async JS
+    time.sleep(1)
 
 def get_page_with_selenium(driver: webdriver.Chrome, url: str) -> str:
     """Load page and wait for it to stabilize."""
