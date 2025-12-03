@@ -45,29 +45,52 @@ def setup_selenium_driver(chromium_binary: str = None, chromedriver_path: str = 
     )
     return driver
     
-def get_page_with_selenium(driver: webdriver.Chrome, url: str) -> str:
-    """Fetch page content using Selenium with headless Chromium."""
-    driver.get(url)
-
-    # Wait for body to be present and give JavaScript time to execute
-    WebDriverWait(driver, 10).until(
+def wait_for_page_stability(driver: webdriver.Chrome, timeout: int = 10, stability_time: float = 0.5) -> None:
+    """Wait until page content stops changing (DOM stabilizes)."""
+    WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.TAG_NAME, "body"))
     )
+    
+    # Wait for page to stabilize by comparing page source
+    last_source = None
+    stable_start = None
+    start_time = time.time()
+    
+    while time.time() - start_time < timeout:
+        current_source = driver.page_source
+        
+        if current_source == last_source:
+            if stable_start is None:
+                stable_start = time.time()
+            elif time.time() - stable_start >= stability_time:
+                # Page has been stable for stability_time seconds
+                return
+        else:
+            stable_start = None
+            last_source = current_source
+        
+        time.sleep(0.1)
 
-    time.sleep(3)  # Additional wait for JS execution if necessary
+def get_page_with_selenium(driver: webdriver.Chrome, url: str) -> str:
+    """Load page and wait for it to stabilize."""
+    driver.get(url)
+    wait_for_page_stability(driver)
+    return driver.page_source
 
-    page_source = driver.page_source
-    return page_source
-
-def find_string(driver: webdriver.Chrome, html_content: str, search_string: str) -> bool:
-    # Wait until string is present
+def find_string(page_source: str, search_string: str, print_logs: bool = False) -> bool:
+    """Check if search_string is present in the given page_source."""
     try:
-        WebDriverWait(driver, 10).until(
-            EC.text_to_be_present_in_element((By.TAG_NAME, "body"), search_string)
-        )
-        soup = BeautifulSoup(html_content, "html.parser")
-        return search_string in soup.get_text()
-    except:
+        soup = BeautifulSoup(page_source, "html.parser")
+        page_text = soup.get_text()
+        found = search_string in page_text
+        
+        if print_logs:
+            log(f"Searched for '{search_string}': {'found' if found else 'not found'}")
+        
+        return found
+    except Exception as e:
+        if print_logs:
+            log(f"String search error: {str(e)}")
         return False
 
 
@@ -93,19 +116,27 @@ def main(print_logs: bool = False):
     try:
 
         # Use Selenium to get the page content with JavaScript rendering
-        resp_text = get_page_with_selenium(driver, URL_TO_TRACK)
-        if not find_string(driver, resp_text, STRING_TO_SEARCH):
+        page_source = get_page_with_selenium(driver, URL_TO_TRACK)
+        
+        # Check if string is present (uses current driver state)
+        if not find_string(page_source, STRING_TO_SEARCH, print_logs):
             log("String not found!", print_logs)
             if MY_USER_ID is not None:
                 sendMsg(
                     user_id=MY_USER_ID,
-                    text=f"The string {STRING_TO_SEARCH} was not found at {URL_TO_TRACK}!",
+                    text=f"The string '{STRING_TO_SEARCH}' was not found at {URL_TO_TRACK}!",
                     max_retries=3,
                 )
         else:
             log("String found.", print_logs)
     except Exception as e:
         log(f"An error occurred: {str(e)}", print_logs)
+        if MY_USER_ID is not None:
+            sendMsg(
+                user_id=MY_USER_ID,
+                text=f"Error monitoring {URL_TO_TRACK}: {str(e)}",
+                max_retries=3,
+            )
     finally:
         if driver:
             driver.quit()
