@@ -42,8 +42,12 @@ def setup_selenium_driver(chromium_binary: str = None, chromedriver_path: str = 
     options.add_argument("--disable-logging")
     
     # Single-process mode only for Linux (Pi Zero) - crashes on Windows
+    # Also add memory limits for ARM devices
     if platform.system() == "Linux":
         options.add_argument("--single-process")
+        # Detect if running on ARM (Raspberry Pi)
+        if platform.machine().startswith('arm') or platform.machine().startswith('aarch'):
+            options.add_argument("--js-flags=--max-old-space-size=256")
     
     if chromium_binary:
         options.binary_location = chromium_binary
