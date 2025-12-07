@@ -1,7 +1,6 @@
 import json, os, time, platform
 from datetime import datetime
 from bs4 import BeautifulSoup
-from helpers.telegram import sendMsg
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -9,8 +8,33 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from helpers.telegram import sendMsg
+from helpers.homeassistant import HomeAssistant
 
 load_dotenv()
+
+def notify(message: str, print_logs: bool = False):
+    try:
+        # Telegram
+        user_id = os.getenv("MY_USER_ID")
+        url_to_track = os.getenv("URL_TO_TRACK")
+        sendMsg(
+            user_id=user_id,
+            text=f"Error monitoring {url_to_track}: {str(e)}",
+            max_retries=3,
+        )
+    except Exception as e:
+        log(f"Notification error (Telegram): {str(e)}", print_logs)
+    
+    try:
+        # Home Assistant
+        token = os.getenv("HA_TOKEN")
+        notifier_id = os.getenv("HA_NOTIFICATION_TARGET")
+        ha = HomeAssistant(token)
+        ha.send_notification("Test message", "Test Title", notifier_id)
+    except Exception as e:
+        log(f"Notification error (Home Assistant): {str(e)}", print_logs)
+
 
 def log(msg: str, print_to_console: bool = False):
     timestamp = datetime.now().isoformat()
@@ -128,20 +152,18 @@ def main(print_logs: bool = False):
         if not find_string(page_source, STRING_TO_SEARCH, print_logs):
             log("String not found!", print_logs)
             if MY_USER_ID is not None:
-                sendMsg(
-                    user_id=MY_USER_ID,
-                    text=f"The string '{STRING_TO_SEARCH}' was not found at {URL_TO_TRACK}!",
-                    max_retries=3,
+                notify(
+                    f"The string '{STRING_TO_SEARCH}' was not found at {URL_TO_TRACK}!",
+                    print_logs=print_logs
                 )
         else:
             log("String found.", print_logs)
     except Exception as e:
         log(f"An error occurred: {str(e)}", print_logs)
         if MY_USER_ID is not None:
-            sendMsg(
-                user_id=MY_USER_ID,
-                text=f"Error monitoring {URL_TO_TRACK}: {str(e)}",
-                max_retries=3,
+            notify(
+                f"Error monitoring {URL_TO_TRACK}: {str(e)}",
+                print_logs=print_logs
             )
     finally:
         if driver:
