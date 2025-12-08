@@ -17,10 +17,9 @@ def notify(message: str, print_logs: bool = False):
     try:
         # Telegram
         user_id = os.getenv("MY_USER_ID")
-        url_to_track = os.getenv("URL_TO_TRACK")
         sendMsg(
             user_id=user_id,
-            text=f"Error monitoring {url_to_track}: {str(e)}",
+            text=message,
             max_retries=3,
         )
     except Exception as e:
@@ -31,7 +30,7 @@ def notify(message: str, print_logs: bool = False):
         token = os.getenv("HA_TOKEN")
         notifier_id = os.getenv("HA_NOTIFICATION_TARGET")
         ha = HomeAssistant(token)
-        ha.send_notification("Test message", "Test Title", notifier_id)
+        ha.send_notification(message, "Website Change Tracker", notifier_id)
     except Exception as e:
         log(f"Notification error (Home Assistant): {str(e)}", print_logs)
 
