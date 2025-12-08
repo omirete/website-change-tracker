@@ -1,66 +1,65 @@
 # Website Change Tracker
 
-Minimal Python script to watch a web page for changes.
+Monitors a web page and alerts when specific text is missing. Runs automatically every hour in a Docker container.
 
 ## How it works
-1. Gets `url_to_track` from `config.json`.
-2. Fetches the page and parses the HTML contents.
-3. Compares the current body to the latest snapshot stored in `states/`.
-4. If differences are found, it saves a new timestamped `.html` and writes a log entry.
-5. If enabled, it sends a Telegram notification upon detecting a change.
-
-## What you will need
-1. Any Python version >=3.9 (and less than 4.0, I suppose). Get it from [here](https://www.python.org/downloads/).
-2. [Poetry](https://python-poetry.org/docs/#installation) for managing dependencies and virtual environments.
+1. Reads `url_to_track` and `string_to_search` from `config.json`
+2. Fetches the page using Chromium/Selenium (handles JavaScript-rendered content)
+3. Searches for the specified text
+4. If the text is not found, sends notifications via Telegram and/or Home Assistant
+5. Logs all activity to a log file
 
 ## Setup
-1. Clone the repo.
-2. Create a `config.json` file in the project root to set the URL you want to track and the string you would like to search for, if you want to do that as well.
-  ```JSON
-  {
-    "url_to_track": "your.site.to.track",
-    "string_to_search": "some string"
-  }
-  ```
-3. If you want telegram notifications, create an `.env` file with:
-  ```ini
-  API_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
-  MY_USER_ID=YOUR_TELEGRAM_USER_ID
-  ```
-4. Install dependencies with Poetry:
-  ```
-  poetry install
-  ``` 
-5. Make sure you have a proper web driver installed, for example:
-  ```
-  sudo apt update
-  sudo apt install chromium chromium-driver
-  ``` 
-6. After installing the driver, get the binary path:
-  ```
-  which chromium
-  which chromedriver
-  ```
-7. Add those values to the config.json file, for example:
-  ```JSON
-  {
-    ...,
-    "chromium_binary": "/usr/bin/chromium",
-    "chromedriver_path": "/usr/bin/chromedriver"
-  }
-  ```
-8. Run it once to test everything works as expected:
-  ```
-  poetry run python detect_website_changes.py
-  ```
-  or with
-  ```
-  poetry run python alert_if_missing_text.py
-  ```
-9. Optionally setup a cronjob using the wizard:
-  ```
-  poetry run python setup_cronjob.py
-  ```
+
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+### Quick Start
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/omirete/website-change-tracker.git
+   cd website-change-tracker
+   ```
+
+2. Create `config.json`:
+   ```json
+   {
+     "url_to_track": "https://example.com",
+     "string_to_search": "text to monitor"
+   }
+   ```
+
+3. (Optional) Set up notifications:
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` with your credentials:
+   - `API_TOKEN`: Telegram bot token (get from @BotFather)
+   - `MY_USER_ID`: Your Telegram user ID (get from @userinfobot)
+   - `HA_TOKEN` & `HA_NOTIFICATION_TARGET`: Home Assistant credentials (optional)
+
+4. Start the container:
+   ```bash
+   docker-compose up -d
+   ```
+
+5. View logs:
+   ```bash
+   docker-compose logs -f
+   ```
+
+6. Stop the container:
+   ```bash
+   docker-compose down
+   ```
+
+## Notes
+- The script runs immediately on startup, then every half hour
+- The `states/` directory and `log` file persist between container restarts
+- You can edit `config.json` without rebuilding the container
+- Chromium and chromedriver are pre-configured
 
 ## License
 MIT

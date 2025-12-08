@@ -4,8 +4,8 @@ import unicodedata
 from requests import get
 from datetime import datetime
 from bs4 import BeautifulSoup
-from helpers.telegram import sendMsg
 from dotenv import load_dotenv
+from .helpers.telegram import sendMsg
 
 load_dotenv()
 

@@ -8,8 +8,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from helpers.telegram import sendMsg
-from helpers.homeassistant import HomeAssistant
+from .helpers.telegram import sendMsg
+from .helpers.homeassistant import HomeAssistant
 
 load_dotenv()
 

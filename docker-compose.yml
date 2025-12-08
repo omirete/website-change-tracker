@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  website-tracker:
+    build: .
+    container_name: website-change-tracker
+    restart: unless-stopped
+    environment:
+      # Telegram configuration (optional)
+      - API_TOKEN=${API_TOKEN}
+      - MY_USER_ID=${MY_USER_ID}
+      # Home Assistant configuration (optional)
+      - HA_TOKEN=${HA_TOKEN}
+      - HA_NOTIFICATION_TARGET=${HA_NOTIFICATION_TARGET}
+      # Chromium paths for container
+      - CHROMIUM_BINARY=/usr/bin/chromium
+      - CHROMEDRIVER_PATH=/usr/bin/chromedriver
+    volumes:
+      # Persist states and logs
+      - ./states:/app/states
+      - ./log:/app/log
+      # Mount config.json so you can update it without rebuilding
+      - ./config.json:/app/config.json:ro
+      # Mount .env if you prefer using a file
+      - ./.env:/app/.env:ro
+    # Optional: Limit resources
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512M
+    #       cpus: '0.5'
