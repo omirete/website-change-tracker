@@ -38,7 +38,7 @@ def notify(message: str, print_logs: bool = False):
 
 def log(msg: str, print_to_console: bool = False):
     timestamp = datetime.now().isoformat()
-    with open("log", "a", encoding="utf-8") as logfile:
+    with open("log/alert_if_missing_text.log", "a", encoding="utf-8") as logfile:
         logfile.write(f"{timestamp}: {msg}\n")
 
     if print_to_console:
@@ -136,12 +136,14 @@ def main(print_logs: bool = False):
     
     driver = None
 
-    if config.get("chromium_binary") is None or config.get("chromedriver_path") is None:
-        driver = setup_selenium_driver()
-    else:
-        CHROMIUM_BINARY: str = config["chromium_binary"]
-        CHROMEDRIVER_PATH: str = config["chromedriver_path"]
+    # Check environment variables first (for Docker), then config file
+    CHROMIUM_BINARY = os.getenv("CHROMIUM_BINARY") or config.get("chromium_binary")
+    CHROMEDRIVER_PATH = os.getenv("CHROMEDRIVER_PATH") or config.get("chromedriver_path")
+    
+    if CHROMIUM_BINARY and CHROMEDRIVER_PATH:
         driver = setup_selenium_driver(CHROMIUM_BINARY, CHROMEDRIVER_PATH)
+    else:
+        driver = setup_selenium_driver()
 
     try:
 

@@ -10,7 +10,7 @@ from .helpers.telegram import sendMsg
 load_dotenv()
 
 def log(msg: str, print_to_console: bool = False):
-    with open("log", "a", encoding="utf-8") as logfile:
+    with open("log/detect_website_changes.log", "a", encoding="utf-8") as logfile:
         timestamp = datetime.now().isoformat()
         logfile.write(f"{timestamp}: {msg}\n")
 
