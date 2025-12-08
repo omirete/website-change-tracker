@@ -4,7 +4,7 @@
 set -e
 
 echo "Starting website change tracker..."
-echo "Script will run every hour"
+echo "Script will run every half hour"
 
 # Function to run the tracker
 run_tracker() {
