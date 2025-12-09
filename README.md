@@ -55,6 +55,32 @@ Monitors a web page and alerts when specific text is missing. Runs automatically
    docker-compose down
    ```
 
+## Testing Notifications
+
+To verify your notification setup is working correctly:
+
+### Method 1: Test inside the running container
+```bash
+docker-compose exec website-change-tracker python test_notifications.py
+```
+
+### Method 2: Run a one-off test container
+```bash
+docker-compose run --rm website-change-tracker python test_notifications.py
+```
+
+### Method 3: Test locally (if you have Python installed)
+```bash
+python test_notifications.py
+```
+
+The test script will:
+- Check if your credentials are configured in `.env`
+- Send test messages via Telegram and/or Home Assistant
+- Display success/failure status for each notification method
+
+**Note**: At least one notification method (Telegram or Home Assistant) should be configured for the tracker to send alerts.
+
 ## Notes
 - The script runs immediately on startup, then every half hour
 - The `states/` directory and `log` file persist between container restarts
