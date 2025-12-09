@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from .helpers.telegram import sendMsg
 from .helpers.homeassistant import HomeAssistant
 
@@ -86,42 +87,36 @@ def setup_selenium_driver(chromium_binary: str = None, chromedriver_path: str = 
     )
     return driver
     
-def wait_for_page_stability(driver: webdriver.Chrome, timeout: int = 10) -> None:
-    """Wait for page to load and become interactive."""
-    # Wait for body element
-    WebDriverWait(driver, timeout).until(
-        EC.presence_of_element_located((By.TAG_NAME, "body"))
-    )
+def check_if_text_present(driver: webdriver.Chrome, url: str, search_string: str, timeout: int = 20, print_logs: bool = False) -> bool:
+    """Load page and check if text is present, waiting for it to appear.
     
-    # Wait for document.readyState to be complete
-    WebDriverWait(driver, timeout).until(
-        lambda d: d.execute_script("return document.readyState") == "complete"
-    )
+    Returns:
+        bool: True if text is found, False otherwise
+    """
     
-    # Small additional wait for any async JS
-    time.sleep(1)
-
-def get_page_with_selenium(driver: webdriver.Chrome, url: str) -> str:
-    """Load page and wait for it to stabilize."""
-    driver.get(url)
-    wait_for_page_stability(driver)
-    return driver.page_source
-
-def find_string(page_source: str, search_string: str, print_logs: bool = False) -> bool:
-    """Check if search_string is present in the given page_source."""
     try:
-        soup = BeautifulSoup(page_source, "html.parser")
-        page_text = soup.get_text()
-        found = search_string in page_text
+        driver.get(url)
         
-        if print_logs:
-            log(f"Searched for '{search_string}': {'found' if found else 'not found'}")
+        # Wait for body to be present
+        WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
         
-        return found
+        # Wait for the specific text to appear in the page
+        # This uses a lambda that checks if text is in page source
+        try:
+            WebDriverWait(driver, timeout).until(
+                lambda d: search_string in d.page_source
+            )
+            # Text found!
+            return True
+        except TimeoutException:
+            # Text not found within timeout - this is expected if string is actually missing
+            return False
+            
     except Exception as e:
-        if print_logs:
-            log(f"String search error: {str(e)}")
-        return False
+        log(f"Attempt failed: {str(e)}", print_logs)
+        raise
 
 
 def main(print_logs: bool = False):
@@ -147,11 +142,15 @@ def main(print_logs: bool = False):
 
     try:
 
-        # Use Selenium to get the page content with JavaScript rendering
-        page_source = get_page_with_selenium(driver, URL_TO_TRACK)
+        # Use Selenium to check if text is present (waits for it to appear)
+        text_found = check_if_text_present(
+            driver=driver,
+            url=URL_TO_TRACK,
+            search_string=STRING_TO_SEARCH,
+            timeout=20,
+            print_logs=print_logs)
         
-        # Check if string is present (uses current driver state)
-        if not find_string(page_source, STRING_TO_SEARCH, print_logs):
+        if not text_found:
             log("String not found!", print_logs)
             if MY_USER_ID is not None:
                 notify(
