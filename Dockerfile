@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir .
 # Copy config file
 COPY config.json ./
 
+# Copy test script
+COPY test_notifications.py ./
+
 # Create directories for states and logs
 RUN mkdir -p states
 
