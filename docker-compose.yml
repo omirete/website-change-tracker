@@ -3,6 +3,7 @@ services:
     build: .
     container_name: website-change-tracker
     restart: unless-stopped
+    network_mode: host
     environment:
       # Telegram configuration (optional)
       - API_TOKEN=${API_TOKEN}
