@@ -49,7 +49,8 @@ def test_home_assistant():
         return False
     
     try:
-        ha = HomeAssistant(token)
+        base_url = os.getenv("HA_BASE_URL", "http://homeassistant.local:8123")
+        ha = HomeAssistant(token, base_url)
         test_message = f"🧪 Test notification from Website Change Tracker\nTimestamp: {datetime.now().isoformat()}"
         ha.send_notification(test_message, "Website Change Tracker Test", notifier_id)
         print("✅ Home Assistant: Notification sent successfully!")

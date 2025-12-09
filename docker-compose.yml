@@ -11,6 +11,7 @@ services:
       # Home Assistant configuration (optional)
       - HA_TOKEN=${HA_TOKEN}
       - HA_NOTIFICATION_TARGET=${HA_NOTIFICATION_TARGET}
+      - HA_BASE_URL=${HA_BASE_URL}
       # Chromium paths for container
       - CHROMIUM_BINARY=/usr/bin/chromium
       - CHROMEDRIVER_PATH=/usr/bin/chromedriver

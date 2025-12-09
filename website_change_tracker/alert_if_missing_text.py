@@ -29,7 +29,8 @@ def notify(message: str, print_logs: bool = False):
         # Home Assistant
         token = os.getenv("HA_TOKEN")
         notifier_id = os.getenv("HA_NOTIFICATION_TARGET")
-        ha = HomeAssistant(token)
+        base_url = os.getenv("HA_BASE_URL")
+        ha = HomeAssistant(token, base_url)
         ha.send_notification(message, "Website Change Tracker", notifier_id)
     except Exception as e:
         log(f"Notification error (Home Assistant): {str(e)}", print_logs)

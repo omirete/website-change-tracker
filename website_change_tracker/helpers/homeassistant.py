@@ -1,9 +1,10 @@
 import requests
 
 class HomeAssistant:
-    def __init__(self, token, print_logs: bool = False):
+    def __init__(self, token, base_url, print_logs: bool = False):
         self._token = token
         self._print_logs = print_logs
+        self._base_url = base_url
     
     def log(self, message: str):
         if self._print_logs:
@@ -11,7 +12,7 @@ class HomeAssistant:
 
 
     def send_notification(self, message, title, notifier_id):
-        url = f"http://homeassistant.local:8123/api/services/notify/{notifier_id}"
+        url = f"{self._base_url}/api/services/notify/{notifier_id}"
         resp = requests.post(
             url=url,
             headers={
