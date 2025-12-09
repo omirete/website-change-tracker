@@ -35,43 +35,37 @@ Monitors a web page and alerts when specific text is missing. Runs automatically
    ```bash
    cp .env.example .env
    ```
-   Edit `.env` with your credentials:
-   - `API_TOKEN`: Telegram bot token (get from @BotFather)
-   - `MY_USER_ID`: Your Telegram user ID (get from @userinfobot)
-   - `HA_TOKEN` & `HA_NOTIFICATION_TARGET`: Home Assistant credentials (optional)
+   Edit `.env` with your data:
+   - `API_TOKEN`: Telegram bot token (get from @BotFather).
+   - `MY_USER_ID`: Your Telegram user ID.
+   - `HA_BASE_URL`: URL of your Home Assistant instance.
+   - `HA_TOKEN`: Long-lived token from Home Assistant.
+   - `HA_NOTIFICATION_TARGET`: Target where the notifications should be sent to.
+
 
 4. Start the container:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 5. View logs:
    ```bash
-   docker-compose logs -f
+   docker compose logs -f
    ```
 
 6. Stop the container:
    ```bash
-   docker-compose down
+   docker compose down
    ```
 
 ## Testing Notifications
 
 To verify your notification setup is working correctly:
 
-### Method 1: Test inside the running container
+### Test inside the running container
 ```bash
-docker-compose exec website-change-tracker python test_notifications.py
+docker compose exec website-change-tracker python test_notifications.py
 ```
-
-### Method 2: Run a one-off test container
-```bash
-docker-compose run --rm website-change-tracker python test_notifications.py
-```
-
-### Method 3: Test locally (if you have Python installed)
-```bash
-python test_notifications.py
 ```
 
 The test script will:
